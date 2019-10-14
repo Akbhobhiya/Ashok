@@ -1,4 +1,4 @@
-### Data Structure and Algorithms part-1
+# Data Structure and Algorithms part-1
 stacks,
 queue,
 circular queue,
