@@ -5,255 +5,192 @@ using namespace std;
 class Node  
 {  
     public: 
-    int key; 
+    int key;  
     Node *left;  
     Node *right;  
     int height;  
 };  
 
-
-class avl 
-{   
-public:
-    Node* root = NULL;
-
-
-    int height(Node *N)  
+Node* search(Node *root,int data)                                //function overloading
+             {
+                if(root==NULL) return NULL;
+                if(data<root->key) return(search(root->left,data));
+                else if(data>root->key) return(search(root->right,data));
+                else return root;
+             }
+  
+// A utility function to get maximum 
+// of two integers  
+int max(int a, int b);  
+  
+// A utility function to get height  
+// of the tree  
+int height(Node *N)  
+{  
+    if (N == NULL)  
+        return 0;  
+    return N->height;  
+}  
+  
+// A utility function to get maximum 
+// of two integers  
+int max(int a, int b)  
+{  
+    return (a > b)? a : b;  
+}  
+  
+/* Helper function that allocates a  
+   new node with the given key and  
+   NULL left and right pointers. */
+Node* newNode(int key)  
+{  
+    Node* node = new Node(); 
+    node->key = key;  
+    node->left = NULL;  
+    node->right = NULL;  
+    node->height = 1; // new node is initially 
+                      // added at leaf  
+    return(node);  
+}  
+  
+// A utility function to right 
+// rotate subtree rooted with y  
+// See the diagram given above.  
+Node *rightRotate(Node *y)  
+{  
+    Node *x = y->left;  
+    Node *T2 = x->right;  
+  
+    // Perform rotation  
+    x->right = y;  
+    y->left = T2;  
+  
+    // Update heights  
+    y->height = max(height(y->left),  
+                    height(y->right)) + 1;  
+    x->height = max(height(x->left),  
+                    height(x->right)) + 1;  
+  
+    // Return new root  
+    return x;  
+}  
+  
+// A utility function to left  
+// rotate subtree rooted with x  
+// See the diagram given above.  
+Node *leftRotate(Node *x)  
+{  
+    Node *y = x->right;  
+    Node *T2 = y->left;  
+  
+    // Perform rotation  
+    y->left = x;  
+    x->right = T2;  
+  
+    // Update heights  
+    x->height = max(height(x->left),  
+                    height(x->right)) + 1;  
+    y->height = max(height(y->left),  
+                    height(y->right)) + 1;  
+  
+    // Return new root  
+    return y;  
+}  
+  
+// Get Balance factor of node N  
+int getBalance(Node *N)  
+{  
+    if (N == NULL)  
+        return 0;  
+    return height(N->left) -  
+           height(N->right);  
+}  
+  
+Node* insert(Node* node, int key)  
+{  
+    /* 1. Perform the normal BST rotation */
+    if (node == NULL)  
+        return(newNode(key));  
+  
+    if (key < node->key)  
+        node->left = insert(node->left, key);  
+    else if (key > node->key)  
+        node->right = insert(node->right, key);  
+    else // Equal keys not allowed  
+        return node;  
+  
+    /* 2. Update height of this ancestor node */
+    node->height = 1 + max(height(node->left),  
+                           height(node->right));  
+  
+    /* 3. Get the balance factor of this  
+        ancestor node to check whether  
+        this node became unbalanced */
+    int balance = getBalance(node);  
+  
+    // If this node becomes unbalanced, 
+    // then there are 4 cases  
+  
+    // Left Left Case  
+    if (balance > 1 && key < node->left->key)  
+        return rightRotate(node);  
+  
+    // Right Right Case  
+    if (balance < -1 && key > node->right->key)  
+        return leftRotate(node);  
+  
+    // Left Right Case  
+    if (balance > 1 && key > node->left->key)  
     {  
-        if (N == NULL)  
-            return 0;  
-        return N->height;  
-    }  
-    int max(int a, int b)  
-    {  
-        return (a > b)? a : b;  
-    } 
-
-    Node* newNode(int key)  
-    {  
-        Node* node = new Node(); 
-        node->key = key;  
-        node->left = NULL;  
-        node->right = NULL;  
-        node->height = 1; // new node is initially 
-                          // added at leaf  
-        return(node);  
-    }   
-    Node *rightRotate(Node *y)  
-    {  
-        Node *x = y->left;  
-        Node *T2 = x->right;  
-      
-        // Perform rotation  
-        x->right = y;  
-        y->left = T2;  
-      
-        // Update heights  
-        y->height = max(height(y->left), 
-                        height(y->right)) + 1;  
-        x->height = max(height(x->left), 
-                        height(x->right)) + 1;  
-      
-        // Return new root  
-        return x;  
-    }  
-      
-    // A utility function to left  
-    // rotate subtree rooted with x  
-    // See the diagram given above.  
-    Node *leftRotate(Node *x)  
-    {  
-        Node *y = x->right;  
-        Node *T2 = y->left;  
-      
-        // Perform rotation  
-        y->left = x;  
-        x->right = T2;  
-      
-        // Update heights  
-        x->height = max(height(x->left),     
-                        height(x->right)) + 1;  
-        y->height = max(height(y->left),  
-                        height(y->right)) + 1;  
-      
-        // Return new root  
-        return y;  
-    }  
-    int getBalance(Node *N)  
-    {  
-        if (N == NULL)  
-            return 0;  
-        return height(N->left) - height(N->right);  
+        node->left = leftRotate(node->left);  
+        return rightRotate(node);  
     }  
   
-// Recursive function to insert a key 
-// in the subtree rooted with node and 
-// returns the new root of the subtree.  
-    Node* insert(Node* node, int key)  
+    // Right Left Case  
+    if (balance < -1 && key < node->right->key)  
     {  
-        /* 1. Perform the normal BST insertion */
-        if (node == NULL)  
-            return(newNode(key));  
-      
-        if (key < node->key)  
-            node->left = insert(node->left, key);  
-        else if (key > node->key)  
-            node->right = insert(node->right, key);  
-        else // Equal keys are not allowed in BST  
-            return node;  
-      
-        /* 2. Update height of this ancestor node */
-        node->height = 1 + max(height(node->left),  
-                            height(node->right));  
-      
-        /* 3. Get the balance factor of this ancestor  
-            node to check whether this node became  
-            unbalanced */
-        int balance = getBalance(node);  
-      
-        // If this node becomes unbalanced, then  
-        // there are 4 cases  
-      
-        // Left Left Case  
-        if (balance > 1 && key < node->left->key)  
-            return rightRotate(node);  
-      
-        // Right Right Case  
-        if (balance < -1 && key > node->right->key)  
-            return leftRotate(node);  
-      
-        // Left Right Case  
-        if (balance > 1 && key > node->left->key)  
-        {  
-            node->left = leftRotate(node->left);  
-            return rightRotate(node);  
-        }  
-      
-        // Right Left Case  
-        if (balance < -1 && key < node->right->key)  
-        {  
-            node->right = rightRotate(node->right);  
-            return leftRotate(node);  
-        }  
-      
-        /* return the (unchanged) node pointer */
-        return node;  
+        node->right = rightRotate(node->right);  
+        return leftRotate(node);  
     }  
-      
-    // A utility function to print preorder  
-    // traversal of the tree.  
-    // The function also prints height  
-    // of every node  
-    void preOrder(Node *root)  
-    {  
-        if(root != NULL)  
-        {  
-            cout << root->key << " ";  
-            preOrder(root->left);  
-            preOrder(root->right);  
-        }  
-    }
-
-     Node* search(Node* root, int id)
-    {
-        if(root->key == id || root == NULL) {
-            return root;
-        }
-        if(id > root->key) {
-            return search(root->right, id);
-        }
-        return search(root->left, id);
-        
-    }
-
-    Node* min() 
-    {   
-        Node* curr = root;
-        while(curr->left != NULL && curr != NULL) 
-        {
-            curr = curr->left;
-        }
-        return curr;
-    }
-    Node* max()
-    {
-        Node* curr = root;
-        while(curr->right != NULL && curr != NULL)
-        {
-            curr = curr->right;
-        }
-        return curr;
-    }
-/*
-    Node* successor() 
-    {
-        Node* curr = root->right;
-        while(curr->left != NULL && curr != NULL)
-        {
-            curr = curr->left;
-        }
-        return curr;
-    }
-
-    Node* predecessor() 
-    {
-        Node* curr = root->left;
-        while(curr->right != NULL && curr != NULL)
-        {
-            curr = curr->right;
-        }
-        return curr;
-    }*/
-
-
-    void ps(Node*root,Node*&pre,Node*&suc,int n)
-    {
-        if(root==NULL)
-            return;
-        else if(n<root->key)
-        {
-            suc=root;
-            ps(root->left,pre,suc,n);
-        }
-        else if(n>root->key)
-        {
-            pre=root;
-            ps(root->right,pre,suc,n);
-        }
-        else
-        {
-            if(root->left!=NULL)
-            {
-            Node*temp=root->left;
-                while(temp->right!=NULL)
-                    temp=temp->right;
-                    pre=temp;
-            }
-               if(root->right!=NULL)
-               {
-                Node*temp=root->right;
+  
+    /* return the (unchanged) node pointer */
+    return node;  
+}  
+  
+/* Given a non-empty binary search tree,  
+return the node with minimum key value  
+found in that tree. Note that the entire  
+tree does not need to be searched. */
+Node * minNode(Node* node)  
+{  
+    Node* current = node;  
+  
+    /* loop down to find the leftmost leaf */
+    while (current->left != NULL)  
+        current = current->left;  
+  
+    return current;  
+}  
+ int minimum(Node *root)
+             {
+                Node *temp=root;
+                if(root==NULL) {cout<<"Tree is Empty\n"; return -1;}
                 while(temp->left!=NULL)
                     temp=temp->left;
-                    suc=temp;
-               }
-               return;
-        }
-    }
-    Node * minValueNode(Node* node)  
-    {  
-        Node* current = node;  
-      
-        /* loop down to find the leftmost leaf */
-        while (current->left != NULL)  
-            current = current->left;  
-      
-        return current;  
-    }  
+                return temp->key;
+             }
+
+ int maximum(Node *root)                     //Function overloading
+             {
+                Node *temp=root;
+                if(root==NULL) {cout<<"Tree is Empty\n"; return -1;}
+                while(temp->right!=NULL)
+                    temp=temp->right;
+
+                return temp->key;
+             }
   
-// Recursive function to delete a node  
-// with given key from subtree with  
-// given root. It returns root of the  
-// modified subtree.  
+ 
 Node* deleteNode(Node* root, int key)  
 {  
       
@@ -261,20 +198,13 @@ Node* deleteNode(Node* root, int key)
     if (root == NULL)  
         return root;  
   
-    // If the key to be deleted is smaller  
-    // than the root's key, then it lies 
-    // in left subtree  
     if ( key < root->key )  
         root->left = deleteNode(root->left, key);  
   
-    // If the key to be deleted is greater  
-    // than the root's key, then it lies  
-    // in right subtree  
     else if( key > root->key )  
         root->right = deleteNode(root->right, key);  
   
-    // if key is same as root's key, then  
-    // This is the node to be deleted  
+  
     else
     {  
         // node with only one child or no child  
@@ -300,7 +230,7 @@ Node* deleteNode(Node* root, int key)
         {  
             // node with two children: Get the inorder  
             // successor (smallest in the right subtree)  
-            Node* temp = minValueNode(root->right);  
+            Node* temp = minNode(root->right);  
   
             // Copy the inorder successor's  
             // data to this node  
@@ -321,13 +251,7 @@ Node* deleteNode(Node* root, int key)
     root->height = 1 + max(height(root->left),  
                            height(root->right));  
   
-    // STEP 3: GET THE BALANCE FACTOR OF  
-    // THIS NODE (to check whether this  
-    // node became unbalanced)  
     int balance = getBalance(root);  
-  
-    // If this node becomes unbalanced,  
-    // then there are 4 cases  
   
     // Left Left Case  
     if (balance > 1 &&  
@@ -358,79 +282,107 @@ Node* deleteNode(Node* root, int key)
     return root;  
 }  
 
-
-
-};
-
-
-int main()  
+void preOrder(Node *root)  
 {  
+    if(root != NULL)  
+    {  
+        cout << root->key << " ";  
+        preOrder(root->left);  
+        preOrder(root->right);  
+    }  
+    //else cout<<"tree is Empty\n";
+}
+void findPreSuc(int key,Node *root)
+             {
+                 Node *pre=NULL,*suc=NULL;
+                 void findPreSucx(Node *r,Node*&,Node*&,int);
+                 findPreSucx(root,pre,suc,key);
+                 if(pre)
+                 cout<<"Predecessor = "<<pre->key<<endl;
+                 else
+                  cout<<"Predecessor not exist\n";
+                   if(suc)
+                 cout<<"Successor = "<<suc->key<<endl;
+                 else
+                  cout<<"Successor not exist\n";
+             }
 
-    avl* t1 = new avl();
-   /* t1->root = t1->insert(t1->root,10);
-    t1->root = t1->insert(t1->root,20);
-    t1->root = t1->insert(t1->root,30);
-    t1->root = t1->insert(t1->root,40);
-    t1->root = t1->insert(t1->root,50);
-    t1->root = t1->insert(t1->root,25);
-
-    
-     The constructed AVL Tree would be  
-                30  
-            / \  
-            20 40  
-            / \ \  
-        10 25 50  
-    
-    cout << "Preorder traversal of the "
-            "constructed AVL tree is \n";  
-    t1->preOrder(t1->root);
-
-    //t1->root = t1->deleteNode(t1->root, 10);  
-    Node* pre, *succ;
-    t1->ps(t1->root,pre,succ,40);
-    cout<<'\n'<<pre->key<<'\n'<<succ->key;
-*/
-    while(true) 
-    {
-        int opt;
-        Node* pre, *succ;
-        cout << "enter 1 to insert, enter 2 to deletenode 3 to search 4 to traverse 5 to successor 6 to predecessor 7 to min \n";
-        cin >> opt;
-        int inp;
-        int ele;
-        switch(opt) 
-        {
-            case 1: 
-                    cin >> inp;
-                    t1->root = t1->insert(t1->root, inp); 
-                    break;
-            case 2: //int inp;
-                    cin >> inp;
-                    t1->root = t1->deleteNode(t1->root, inp);
-                    break;
-
-            case 3: //int inp;
-                    cin >> inp;
-                    t1->search(t1->root, inp);
-                    break;
-
-            case 4: t1->preOrder(t1->root);break;
-            case 5: 
-                    cout<<"Enter element whose successor: ";
-                    cin >> ele;
-                    t1->ps(t1->root,pre,succ,ele);
-                    cout<<succ->key<<'\n';
-                    break;
-            case 6:  
-                    cout<<"Enter element whose pred: ";
-                    cin >> ele;                 
-                    t1->ps(t1->root,pre,succ,ele);
-                    cout<<pre->key<<'\n'
-                    ;break;
-        }
-    }
-          
-    return 0;  
-}  
+void findPreSucx(Node* root, Node*& pre, Node*& suc, int key) 
+{ 
+    if (root == NULL)  return ;  
+    if (root->key == key)      // If key is present at root
+    { 
+        // the maximum value in left subtree is predecessor 
+        if (root->left != NULL) 
+        { 
+            Node* tmp = root->left; 
+            while (tmp->right) 
+                tmp = tmp->right; 
+            pre = tmp ; 
+        } 
   
+        // the minimum value in right subtree is successor 
+        if (root->right != NULL) 
+        { 
+            Node* tmp = root->right ; 
+            while (tmp->left) 
+                tmp = tmp->left ; 
+            suc = tmp ; 
+        } 
+        return ; 
+    } 
+  
+    // If key is smaller than root's key, go to left subtree 
+    if (root->key > key) 
+    { 
+        suc = root ; 
+        findPreSucx(root->left, pre, suc, key) ; 
+    } 
+    else 
+    { 
+        pre = root ; 
+        findPreSucx(root->right, pre, suc, key) ; 
+    } 
+}   
+
+int main()
+{    int q,temp;
+    Node* root=NULL;
+    cout<<"Enter to perform\n1.Insert\n2.Display\n3.Search\n4.Maximum Element\n5.Minimum Element\n6.Successor and Predecessor\n8.Delete\n0.Exit\n";
+    cin>>q;
+    while(q)
+    {
+        switch(q)
+        {
+            case 1: cout<<"Enter key to insert : ";
+                     cin>>temp;
+                   root=insert(root,temp);
+                     break;
+            case 2:preOrder(root);
+                     cout<<"\n";
+                     break;
+            case 3:cout<<"Enter element to search  :  ";
+                   cin>>temp;
+                    if(search(root,temp)!=NULL) cout<<"Match Found\n";
+                    else cout<<"Match not found\n";
+                    break;
+            case 4: temp=maximum(root);
+                    if(temp!=-1) cout<<"Maximum element is "<<temp<<"\n";
+                    break;
+            case 5: temp=minimum(root);
+                    if(temp!=-1) cout<<"Minimum element is "<<temp<<"\n";
+                    break;
+            case 6:cout<<"Enter element :  ";
+                   cin>>temp;
+                    findPreSuc(temp,root);break;
+            case 8: cout<<"Enter element to delete : ";
+                    cin>>temp;
+                   root=deleteNode(root,temp);
+                    preOrder(root);
+                    break;
+        }
+        cout<<"Enter to perform\n1.Insert\n2.Display\n3.Search\n4.Maximum Element\n5.Minimum Element\n6.Successor and Predecessor\n8.Delete\n0.Exit\n";
+        cin>>q;
+    }
+
+}
