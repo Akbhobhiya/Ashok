@@ -1,3 +1,5 @@
+//AVL Tree insertion part only
+
 #include<stdio.h>
 #include<stdlib.h>
 struct node
